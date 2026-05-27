@@ -15,23 +15,22 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # 2. Install uv but disable automatic lockfile cache validation
+    # 2. Install uv and disable lockfile cache checks
     - name: Install uv
       uses: astral-sh/setup-uv@v3
       with:
-        enable-cache: false # Instructs uv to skip looking for a uv.lock/pyproject.toml signature
+        enable-cache: false
 
     # 3. Pin your project's Python version
     - name: Set up Python
       run: uv python pin 3.11
 
-    # 4. Install dependencies using uv's legacy pip-compatibility module
+    # 4. Install dependencies into the runner environment
     - name: Install Dependencies
       run: |
-        uv venv .venv
-        uv pip install -r requirements.txt
+        uv pip install --system -r requirements.txt
 
-    # 5. Run your Django tests using the global virtual runner wrapper
-    - name: Run Django Tests
+    # 5. Perform a Django validation check (since there are no tests yet)
+    - name: Run Django Sanity Check
       run: |
-        python manage.py test
+        uv run python manage.py check
