@@ -28,6 +28,7 @@ jobs:
     # 4. Install dependencies using uv's legacy pip-compatibility module
     - name: Install Dependencies
       run: |
+        uv venv .venv
         uv pip install -r requirements.txt
 
     # 5. Run your Django tests using the global virtual runner wrapper
