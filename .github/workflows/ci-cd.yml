@@ -15,22 +15,22 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # 2. Set up Astral's ultra-fast 'uv' package manager with caching
+    # 2. Install uv but disable automatic lockfile cache validation
     - name: Install uv
       uses: astral-sh/setup-uv@v3
       with:
-        enable-cache: true 
+        enable-cache: false # Instructs uv to skip looking for a uv.lock/pyproject.toml signature
 
-    # 3. Pin your project's specific Python environment version
+    # 3. Pin your project's Python version
     - name: Set up Python
       run: uv python pin 3.11
 
-    # 4. Install your Django and environment dependencies in one shot
+    # 4. Install dependencies using uv's legacy pip-compatibility module
     - name: Install Dependencies
       run: |
-        uv sync
+        uv pip install -r requirements.txt
 
-    # 5. Run your Django unit tests to make sure everything works perfectly
+    # 5. Run your Django tests using the global virtual runner wrapper
     - name: Run Django Tests
       run: |
-        uv run python manage.py test
+        python manage.py test
