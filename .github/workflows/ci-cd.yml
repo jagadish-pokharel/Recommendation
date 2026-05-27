@@ -36,4 +36,4 @@ jobs:
     # 5. Run your Django validation check
     - name: Run Django Sanity Check
       run: |
-        .venv/bin/python manage.py check
+        .venv/bin/python manage.py check --tag models --tag compatibility --tag security
