@@ -1,0 +1,51 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'styleiz.css' %}">
+ <footer>
+
+    <div class="footer-container">
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h2>About Us   </h2>
+                <p>Welcome to the Hybrid Book Recommendation System, where you can explore personalized book suggestions based on your preferences.</p>
+            </div>
+
+            <div class="footer-section links">
+                <h2>Quick Links</h2>
+                <ul>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'ratings_page' %}">Ratings Based Recommendations</a></li>
+                    <li><a href="{% url 'aged_page' %}">Age  Based Recommendations</a></li>
+                    <li><a href="{% url 'category_page' %}">Category Based Recommendations</a></li>
+                    <li><a href="{% url 'content_page' %}">Content Based Recommendations</a></li>
+                    
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section social">
+                <h2>Developers</h2>
+                
+                    <ul>
+                        <li> Aadarsha Chaulagain</li>
+                        <li> Aaditya Bhandari</li>
+                        <li> Bishwa Karna</li>
+                        <li> Jagadish Pokharel</li>
+
+
+
+
+                    </ul>
+                    
+                
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>
+                <p>© 2081 Hybrid Book Recommendation System </p>
+            </div>
+            
+        </div>
+    </div>
+</footer>
+

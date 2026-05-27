@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>Recommendations for "{{ item }}" ({{ search_type }})</h1>
+
+    {% if combined_recommendations %}
+        <div class="book-list">
+            {% for recommendation in combined_recommendations %}
+                <div class="book-item">
+                    <img src="{% if recommendation.url %}{{ recommendation.url }}{% else %}{% static 'placeholder.jpg' %}{% endif %}" alt="{{ recommendation.book_title }}" onerror="this.onerror=null; this.src='{% static 'placeholder.jpg' %}';">
+                    <div class="book-title">
+                        <a href="{% url 'book_details' recommendation.book_title|urlencode %}?search_type={{ search_type }}" target="_blank" rel="noopener noreferrer">
+                            {{ recommendation.book_title }}
+                        </a>
+                    </div>
+                    {% if recommendation.score %}
+                        <p class="recommendation-score">Score: {{ recommendation.score|floatformat:2 }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% elif combined_recommendations and combined_recommendations.0.book_title == 'No recommendations available.' %}
+        <p>No recommendations available.</p>
+    {% else %}
+        <p>No books found matching your search criteria.</p>
+    {% endif %}
+</div>
+{% endblock %}
