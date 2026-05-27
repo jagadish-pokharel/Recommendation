@@ -1,0 +1,70 @@
+name: Django Recommendation App CI/CD (with uv)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Pull the codebase from GitHub
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # 2. Set up uv environment (This automatically handles Python too!)
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        # Enable caching so subsequent workflow runs are near-instant
+        enable-cache: true
+        # Specify the Python version you want uv to look for/install
+        python-version: '3.10'
+
+    # 3. Install Django dependencies and DVC tools using uv
+    - name: Install Dependencies
+      run: |
+        # uv pip compile / sync or straight install from requirements
+        if [ -f requirements.txt ]; then uv pip install -r requirements.txt; fi
+        # Install auxiliary tools like flake8 and dvc with cloud extensions
+        uv pip install flake8 "dvc[all]"
+
+    # 4. Check code style formatting (Linting)
+    - name: Lint Code with Flake8
+      run: |
+        # Run linters through the uv virtual environment if needed, or directly
+        uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        uv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    # 5. Securely download Recommendation Models / Datasets via DVC
+    - name: Configure DVC Credentials & Pull Data
+      env:
+        DVC_CREDENTIALS: ${{ secrets.DVC_REMOTE_CREDENTIALS }}
+      run: |
+        if [ -n "$DVC_CREDENTIALS" ]; then
+          # Note: dvc runs within the uv project environment cleanly
+          uv run dvc remote modify myremote credentialpath "$DVC_CREDENTIALS"
+          uv run dvc pull
+        fi
+
+    # 6. Run Django System Checks and Database Migrations
+    - name: Run Django Database Migrations & Checks
+      env:
+        SECRET_KEY: 'ci-test-secret-key-never-use-this-in-production'
+        DEBUG: 'True'
+      run: |
+        uv run manage.py check
+        uv run manage.py migrate
+
+    # 7. Execute Unit and Integration Tests
+    - name: Run Django Tests
+      env:
+        SECRET_KEY: 'ci-test-secret-key-never-use-this-in-production'
+        DEBUG: 'True'
+      run: |
+        uv run manage.py test
