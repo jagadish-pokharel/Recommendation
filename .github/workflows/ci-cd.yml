@@ -11,26 +11,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Pull down your repository files into the runner
+    # 1. Pull down your repository code
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # 2. Install uv and disable lockfile cache checks
+    # 2. Instantly link Python 3.11 from GitHub's built-in local cache (takes ~2 seconds)
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # 3. Install uv package manager
     - name: Install uv
       uses: astral-sh/setup-uv@v3
       with:
         enable-cache: false
 
-    # 3. Pin your project's Python version
-    - name: Set up Python
-      run: uv python pin 3.11
-
-    # 4. Install dependencies into the runner environment
+    # 4. Create an isolated virtual environment and install your requirements
     - name: Install Dependencies
       run: |
-        uv pip install --system -r requirements.txt
+        uv venv .venv
+        uv pip install -r requirements.txt
 
-    # 5. Perform a Django validation check (since there are no tests yet)
+    # 5. Run your Django validation check
     - name: Run Django Sanity Check
       run: |
-        uv run python manage.py check
+        .venv/bin/python manage.py check
