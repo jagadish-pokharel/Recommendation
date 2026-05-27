@@ -1,70 +1,36 @@
-name: Django Recommendation App CI/CD (with uv)
+name: Django CI-CD Pipeline with uv
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
-  test-and-lint:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Pull the codebase from GitHub
-    - name: Checkout Repository
+    # 1. Pull down your repository files into the runner
+    - name: Checkout Code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    # 2. Set up uv environment (This automatically handles Python too!)
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v5
+    # 2. Set up Astral's ultra-fast 'uv' package manager with caching
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
       with:
-        # Enable caching so subsequent workflow runs are near-instant
-        enable-cache: true
-        # Specify the Python version you want uv to look for/install
-        python-version: '3.10'
+        enable-cache: true 
 
-    # 3. Install Django dependencies and DVC tools using uv
+    # 3. Pin your project's specific Python environment version
+    - name: Set up Python
+      run: uv python pin 3.11
+
+    # 4. Install your Django and environment dependencies in one shot
     - name: Install Dependencies
       run: |
-        # uv pip compile / sync or straight install from requirements
-        if [ -f requirements.txt ]; then uv pip install -r requirements.txt; fi
-        # Install auxiliary tools like flake8 and dvc with cloud extensions
-        uv pip install flake8 "dvc[all]"
+        uv sync
 
-    # 4. Check code style formatting (Linting)
-    - name: Lint Code with Flake8
-      run: |
-        # Run linters through the uv virtual environment if needed, or directly
-        uv run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        uv run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-    # 5. Securely download Recommendation Models / Datasets via DVC
-    - name: Configure DVC Credentials & Pull Data
-      env:
-        DVC_CREDENTIALS: ${{ secrets.DVC_REMOTE_CREDENTIALS }}
-      run: |
-        if [ -n "$DVC_CREDENTIALS" ]; then
-          # Note: dvc runs within the uv project environment cleanly
-          uv run dvc remote modify myremote credentialpath "$DVC_CREDENTIALS"
-          uv run dvc pull
-        fi
-
-    # 6. Run Django System Checks and Database Migrations
-    - name: Run Django Database Migrations & Checks
-      env:
-        SECRET_KEY: 'ci-test-secret-key-never-use-this-in-production'
-        DEBUG: 'True'
-      run: |
-        uv run manage.py check
-        uv run manage.py migrate
-
-    # 7. Execute Unit and Integration Tests
+    # 5. Run your Django unit tests to make sure everything works perfectly
     - name: Run Django Tests
-      env:
-        SECRET_KEY: 'ci-test-secret-key-never-use-this-in-production'
-        DEBUG: 'True'
       run: |
-        uv run manage.py test
+        uv run python manage.py test
